@@ -33,7 +33,9 @@ A geração solar é altamente dependente de fatores astronômicos e atmosféric
 - `$P_{temp}(t)$`: Fator de perda por temperatura.
 
 **Função de Geração Solar Proposta:**
-$$g_s(t) = A \cdot \eta \cdot I(t, \lambda, \phi) \cdot (1 - c(t)) \cdot P_{temp}(t)$$
+$$ 
+g_s(t) = A \cdot \eta \cdot I(t, \lambda, \phi) \cdot (1 - c(t)) \cdot P_{temp}(t) 
+$$
 
 ### 2.2. Geração de Outras Renováveis: $g_r(t)$
 
