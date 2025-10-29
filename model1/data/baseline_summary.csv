@@ -1,0 +1,2 @@
+cenario,T,K_s,K_r,K_n,c1,c2,pi_u,pi_c,gamma,seed,custo_total,energia_nao_suprida,curtailment_total,lambda_medio,lambda_p95,pct_deficit,pct_interior,pct_excesso,ok_balance,ok_bounds_nonneg,max_balance_violation,mean_abs_error_interior,pct_deficit_flagged,pct_excesso_flagged,pct_interior_flagged,lambda_at_deficit_p95,lambda_at_excesso_p95
+Base,24,100.0,80.0,150.0,200.0,1.0,10000.0,10.0,0.0,42,70841784.27148736,6985.178427148734,0.0,9999.999999379119,10000.0,1.0,0.0,0.0,True,True,5.684341886080802e-14,0.0,1.0,0.0,0.0,10000.0,
