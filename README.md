@@ -32,9 +32,9 @@ This project ends is to explore the application of **Mean Field Game theory** to
 
 The system minimizes total operational cost over horizon \(T\):
 
-\[
+$$
 \min_{g^n, c, u} \sum_{t=0}^{T-1} \left[ c_1 g^n_t + \frac{1}{2}c_2 (g^n_t)^2 + \pi_u u_t + \pi_c c_t + \frac{\gamma}{2}(g^n_t - g^n_{t-1})^2 \right]
-\]
+$$
 
 **Subject to:**
 - **Energy balance**: \(g^s_t + g^r_t + g^h_t + g^n_t = D_t + c_t - u_t\)
@@ -56,9 +56,9 @@ The system minimizes total operational cost over horizon \(T\):
 
 The marginal cost of serving demand at time \(t\):
 
-\[
+$$
 \lambda_t = \frac{\partial C^*}{\partial D_t}
-\]
+$$
 
 **Regime classification:**
 - **Deficit**: \(u_t > 0 \Rightarrow \lambda_t \approx \pi_u\)
