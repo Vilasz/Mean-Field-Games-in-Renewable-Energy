@@ -417,21 +417,21 @@ class SINPaths:
                         ("Intercâmbio interno", self.interc_interno_path),
                         ("CMO semanal", self.cmo_semanal_path),
                         ("CMO semi-horário", self.cmo_semihorario_path)]:
-            print(f"  {name:20s}: {'✓' if os.path.exists(p) else '✗'} {p}")
+            print(f"  {name:20s}: {'[CHECK]' if os.path.exists(p) else '[ERROR]'} {p}")
         if self.hydro_paths:
-            print(f"  Hidrelétrica       : ✓ {self.hydro_paths}")
+            print(f"  Hidrelétrica       : [CHECK] {self.hydro_paths}")
         else:
-            print(f"  Hidrelétrica       : ✗ (nenhum arquivo encontrado)")
+            print(f"  Hidrelétrica       : [ERROR] (nenhum arquivo encontrado)")
 
 
 def _load_gen_safe(path: str, fonte: str) -> pd.DataFrame:
     """Carrega geração se o arquivo existir, caso contrário retorna DataFrame vazio."""
     empty = pd.DataFrame(columns=["din_instante", "id_subsistema", "fonte", "val_geracao"])
     if not os.path.exists(path):
-        print(f"  ⚠ {fonte}: arquivo não encontrado ({path})")
+        print(f"  [ERROR] {fonte}: arquivo não encontrado ({path})")
         return empty
     g = load_generation(path, fonte)
-    print(f"  ✓ {fonte}: {len(g):,} linhas")
+    print(f"  [CHECK] {fonte}: {len(g):,} linhas")
     return g
 
 
@@ -445,7 +445,7 @@ def build_panel(paths: SINPaths) -> pd.DataFrame:
     """
     print("Carregando demanda efetiva...")
     D_eff = load_demanda_efetiva(paths.curva_paths)
-    print(f"  ✓ {len(D_eff):,} linhas")
+    print(f"  [CHECK] {len(D_eff):,} linhas")
 
     print("Carregando geração por fonte...")
     G_sol = _load_gen_safe(paths.solar_path, "solar")
@@ -456,7 +456,7 @@ def build_panel(paths: SINPaths) -> pd.DataFrame:
     if paths.hydro_paths:
         G_hyd = _load_gen_safe(paths.hydro_paths[0], "hydro")
     else:
-        print("  ⚠ hydro: nenhum arquivo encontrado — usando zeros")
+        print("  [ERROR] hydro: nenhum arquivo encontrado — usando zeros")
         G_hyd = pd.DataFrame(columns=["din_instante", "id_subsistema", "fonte", "val_geracao"])
 
     G_all = pd.concat([G_sol, G_win, G_hyd, G_nuc, G_ter], ignore_index=True)
@@ -469,7 +469,7 @@ def build_panel(paths: SINPaths) -> pd.DataFrame:
 
     print("Carregando intercâmbio interno...")
     X_int = load_intercambio_interno(paths.interc_interno_path)
-    print(f"  ✓ {len(X_int):,} linhas")
+    print(f"  [CHECK] {len(X_int):,} linhas")
 
     panel = (G_piv
              .merge(D_eff, on=["din_instante", "id_subsistema"], how="outer")
