@@ -307,6 +307,77 @@ def load_intercambio_sin(path: str) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
+# Loaders de preços (CMO)
+# ---------------------------------------------------------------------------
+
+def load_cmo_semanal(path: str) -> pd.DataFrame:
+    """Carrega CMO semanal (resultado DECOMP) com patamares de carga.
+
+    Retorna DataFrame com colunas:
+        din_instante, id_subsistema, cmo_medio, cmo_leve, cmo_media, cmo_pesada
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Arquivo não encontrado: {path}")
+    df = read_csv_robust(path)
+    dtc = detect_datetime_col(df)
+    sc = detect_subsys_col(df)
+    if dtc is None or sc is None:
+        raise ValueError(f"[{path}] colunas datetime/subsistema não encontradas. cols={df.columns.tolist()}")
+
+    result = pd.DataFrame({
+        "din_instante": pd.to_datetime(df[dtc], errors="coerce"),
+        "id_subsistema": df[sc].astype(str).str.strip().apply(canonical_subsys),
+    })
+    col_map = {
+        "val_cmomediasemanal": "cmo_medio",
+        "val_cmoleve": "cmo_leve",
+        "val_cmomedia": "cmo_media",
+        "val_cmopesada": "cmo_pesada",
+    }
+    for orig, dest in col_map.items():
+        if orig in df.columns:
+            result[dest] = to_float(df[orig])
+        else:
+            result[dest] = np.nan
+
+    return result.dropna(subset=["din_instante", "id_subsistema"])
+
+
+def load_cmo_semihorario(path: str) -> pd.DataFrame:
+    """Carrega CMO semi-horário (30 em 30 min) com valor único de CMO.
+
+    Retorna DataFrame com colunas:
+        din_instante, id_subsistema, cmo
+    Opcionalmente agrega para resolução horária com cmo_h (média de 2 meias-horas).
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Arquivo não encontrado: {path}")
+    df = read_csv_robust(path)
+    dtc = detect_datetime_col(df)
+    sc = detect_subsys_col(df)
+    val_col = "val_cmo" if "val_cmo" in df.columns else None
+    if dtc is None or sc is None or val_col is None:
+        raise ValueError(f"[{path}] colunas esperadas não encontradas. cols={df.columns.tolist()}")
+
+    result = pd.DataFrame({
+        "din_instante": pd.to_datetime(df[dtc], errors="coerce"),
+        "id_subsistema": df[sc].astype(str).str.strip().apply(canonical_subsys),
+        "cmo": to_float(df[val_col]),
+    })
+    return result.dropna(subset=["din_instante", "id_subsistema", "cmo"])
+
+
+def load_cmo_horario(path: str) -> pd.DataFrame:
+    """Carrega CMO semi-horário e agrega para resolução horária (média)."""
+    df = load_cmo_semihorario(path)
+    df["din_instante_h"] = df["din_instante"].dt.floor("h")
+    hourly = (df.groupby(["din_instante_h", "id_subsistema"], as_index=False)["cmo"]
+              .mean()
+              .rename(columns={"din_instante_h": "din_instante", "cmo": "cmo_h"}))
+    return hourly
+
+
+# ---------------------------------------------------------------------------
 # Construção do painel unificado
 # ---------------------------------------------------------------------------
 
@@ -332,6 +403,9 @@ class SINPaths:
         self.interc_sin_path = os.path.join(self.data, "intercambio", f"Intercambio_do_SIN_{year}.csv")
         self.interc_interno_path = os.path.join(self.data, "intercambio", f"intercambio_interno_{year}.csv")
 
+        self.cmo_semanal_path = os.path.join(self.data, "precos", f"cmo_semanal{year}.csv")
+        self.cmo_semihorario_path = os.path.join(self.data, "precos", f"cmo_semihorario{year}.csv")
+
     def summary(self) -> None:
         """Imprime resumo dos caminhos e existência dos arquivos."""
         print(f"ROOT: {self.root}")
@@ -340,7 +414,9 @@ class SINPaths:
         for name, p in [("Solar", self.solar_path), ("Eólica", self.wind_path),
                         ("Nuclear", self.nuclear_path), ("Térmica", self.term_path),
                         ("Intercâmbio SIN", self.interc_sin_path),
-                        ("Intercâmbio interno", self.interc_interno_path)]:
+                        ("Intercâmbio interno", self.interc_interno_path),
+                        ("CMO semanal", self.cmo_semanal_path),
+                        ("CMO semi-horário", self.cmo_semihorario_path)]:
             print(f"  {name:20s}: {'✓' if os.path.exists(p) else '✗'} {p}")
         if self.hydro_paths:
             print(f"  Hidrelétrica       : ✓ {self.hydro_paths}")
