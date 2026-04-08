@@ -378,6 +378,71 @@ def load_cmo_horario(path: str) -> pd.DataFrame:
 
 
 # ---------------------------------------------------------------------------
+# Loader de dados hidrológicos
+# ---------------------------------------------------------------------------
+
+_HYDRO_CONV = 0.9 * 9.81 / 1000  # η × ρ × g / 1e6 → MW when Q in m³/s, H in m
+
+
+def load_hidrologia(path: str) -> pd.DataFrame:
+    """Carrega dados hidrológicos diários e calcula potência equivalente (MW).
+
+    Aplica P = η·ρ·g·Q·H/10⁶ (η=0.9) para converter vazões (m³/s) em
+    potência (MW) por reservatório, agrega ao nível SIN diário.
+
+    Retorna DataFrame com colunas:
+        din_instante, A_MW, T_MW, Spill_MW, Outflow_MW, vol_util_pct
+    """
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Arquivo não encontrado: {path}")
+
+    df = read_csv_robust(path)
+    dtc = detect_datetime_col(df)
+    if dtc is None:
+        raise ValueError(f"[{path}] coluna datetime não encontrada. cols={df.columns.tolist()}")
+    df["din_instante"] = pd.to_datetime(df[dtc], errors="coerce")
+
+    num_cols = [
+        "val_nivelmontante", "val_niveljusante",
+        "val_vazaoafluente", "val_vazaoturbinada",
+        "val_vazaovertida", "val_vazaodefluente",
+        "val_volumeutilcon",
+    ]
+    for c in num_cols:
+        if c in df.columns:
+            if df[c].dtype == object:
+                df[c] = to_float(df[c])
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    df["head"] = df["val_nivelmontante"] - df["val_niveljusante"]
+
+    valid = df.dropna(subset=["head", "din_instante"]).copy()
+    valid = valid[valid["head"] > 0]
+
+    valid["A_MW"] = _HYDRO_CONV * valid["val_vazaoafluente"].fillna(0) * valid["head"]
+    valid["T_MW"] = _HYDRO_CONV * valid["val_vazaoturbinada"].fillna(0) * valid["head"]
+    valid["Spill_MW"] = _HYDRO_CONV * valid["val_vazaovertida"].fillna(0) * valid["head"]
+    valid["Outflow_MW"] = _HYDRO_CONV * valid["val_vazaodefluente"].fillna(0) * valid["head"]
+
+    daily = valid.groupby("din_instante").agg(
+        A_MW=("A_MW", "sum"),
+        T_MW=("T_MW", "sum"),
+        Spill_MW=("Spill_MW", "sum"),
+        Outflow_MW=("Outflow_MW", "sum"),
+    ).reset_index()
+
+    rcu = df[df.get("tip_reservatorio", pd.Series(dtype=str)).isin(["RCU"])].copy()
+    if len(rcu) > 0:
+        vol = rcu.groupby("din_instante")["val_volumeutilcon"].mean().reset_index()
+        vol.columns = ["din_instante", "vol_util_pct"]
+        daily = daily.merge(vol, on="din_instante", how="left")
+    else:
+        daily["vol_util_pct"] = np.nan
+
+    return daily.sort_values("din_instante").reset_index(drop=True)
+
+
+# ---------------------------------------------------------------------------
 # Construção do painel unificado
 # ---------------------------------------------------------------------------
 
@@ -405,6 +470,7 @@ class SINPaths:
 
         self.cmo_semanal_path = os.path.join(self.data, "precos", f"cmo_semanal{year}.csv")
         self.cmo_semihorario_path = os.path.join(self.data, "precos", f"cmo_semihorario{year}.csv")
+        self.hidro_di_path = os.path.join(self.data, "hidrologia", f"hidrologicos_di_{year}.csv")
 
     def summary(self) -> None:
         """Imprime resumo dos caminhos e existência dos arquivos."""
@@ -416,7 +482,8 @@ class SINPaths:
                         ("Intercâmbio SIN", self.interc_sin_path),
                         ("Intercâmbio interno", self.interc_interno_path),
                         ("CMO semanal", self.cmo_semanal_path),
-                        ("CMO semi-horário", self.cmo_semihorario_path)]:
+                        ("CMO semi-horário", self.cmo_semihorario_path),
+                        ("Hidrologia diária", self.hidro_di_path)]:
             print(f"  {name:20s}: {'[CHECK]' if os.path.exists(p) else '[ERROR]'} {p}")
         if self.hydro_paths:
             print(f"  Hidrelétrica       : [CHECK] {self.hydro_paths}")
