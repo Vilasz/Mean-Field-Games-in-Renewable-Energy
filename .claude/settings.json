@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ' *)",
+      "PowerShell($env:PYTHONUTF8=\"1\"; python scripts/build_nb_v3.py)",
+      "PowerShell($env:PYTHONUTF8=\"1\"; python scripts/_debug_v3.py 2>&1 | Select-Object -Last 40)"
+    ]
+  }
+}

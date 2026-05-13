@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python scripts/_build_doc_notebook.py)",
+      "Bash(PYTHONUTF8=1 python scripts/_build_doc_notebook.py)",
+      "Bash(python -c \"import sys; print\\(sys.getdefaultencoding\\(\\), sys.stdout.encoding\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(python -X utf8 scripts/_build_doc_notebook.py)",
+      "Bash(pip list *)",
+      "Bash(python -X utf8 -m jupyter nbconvert --to notebook --execute --inplace 06_implementacao_documento_mfg.ipynb --ExecutePreprocessor.timeout=600)",
+      "Bash(python -X utf8 -m nbconvert --to notebook --execute --inplace 06_implementacao_documento_mfg.ipynb --ExecutePreprocessor.timeout=900)",
+      "Bash(python -m nbconvert --to notebook --execute --inplace 06_implementacao_documento_mfg.ipynb --ExecutePreprocessor.timeout=1200)",
+      "Bash(python -m nbconvert --to notebook --execute --inplace 06_implementacao_documento_mfg.ipynb --ExecutePreprocessor.timeout=1500)",
+      "Bash(python scripts/build_nb_v2.py)",
+      "Bash(set PYTHONUTF8=1)"
+    ]
+  }
+}
