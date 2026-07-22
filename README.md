@@ -285,12 +285,17 @@ Mean-Field-Games-in-Renewable-Energy/
 │       └── predictions_social_dispatch_2025_with_intercambio.csv
 │
 ├── validation.ipynb                           # Notebook original de validação
+├── 00_construcao_painel.ipynb                 # Gera os caches de painel e CMO
 ├── 01_analise_exploratoria.ipynb              # Análise exploratória de dados
 ├── 02_modelos_despacho.ipynb                  # Modelos de despacho social
 └── 03_analise_precos.ipynb                    # Análise de preços (CMO)
 ```
 
 ## Notebooks
+
+### `00_construcao_painel.ipynb` — Preparação obrigatória dos dados
+
+Execute este notebook antes dos notebooks `06_implementacao_documento_mfg_v4.ipynb` e `07_mfg_resumo.ipynb`. Ele constrói o painel horário a partir dos CSVs em `data/` e grava `outputs/cache/panel_hourly_v4.parquet` e `outputs/cache/cmo_hourly_v4.parquet`, que são os artefatos consumidos por essas etapas.
 
 ### `01_analise_exploratoria.ipynb` — Análise Exploratória
 
@@ -324,7 +329,7 @@ O módulo `pipeline.py` centraliza toda a infraestrutura de dados compartilhada 
 ### Pré-requisitos
 
 ```bash
-pip install numpy pandas matplotlib seaborn scipy cvxpy scikit-learn statsmodels
+pip install numpy pandas pyarrow matplotlib seaborn scipy cvxpy scikit-learn statsmodels
 ```
 
 ### Instalação
@@ -338,12 +343,13 @@ cd Mean-Field-Games-in-Renewable-Energy
 
 Os dados operacionais do SIN podem ser obtidos em:
 - **Link**: https://drive.google.com/drive/folders/1mhDPyeKm5SD1Ba0SKNl9hDBhWuHTnN68?usp=drive_link
-- Coloque os CSVs nos subdiretórios correspondentes dentro de `validate_model/data/`
+- Coloque os CSVs nos subdiretórios correspondentes dentro de `data/`
 
 ### Execução
 
 Os notebooks devem ser executados na seguinte ordem:
 
-1. `01_analise_exploratoria.ipynb` — entendimento dos dados
-2. `02_modelos_despacho.ipynb` — otimização e validação
-3. `03_analise_precos.ipynb` — análise de custos marginais
+1. `00_construcao_painel.ipynb` — construção dos caches usados pelos notebooks mais novos
+2. `01_analise_exploratoria.ipynb` — entendimento dos dados
+3. `02_modelos_despacho.ipynb` — otimização e validação
+4. `03_analise_precos.ipynb` — análise de custos marginais

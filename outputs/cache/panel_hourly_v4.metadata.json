@@ -1,0 +1,25 @@
+{
+  "year": 2025,
+  "panel_rows": 35040,
+  "panel_columns": [
+    "din_instante",
+    "id_subsistema",
+    "hydro",
+    "nuclear",
+    "solar",
+    "thermal",
+    "wind",
+    "D",
+    "x_int",
+    "gs",
+    "gr",
+    "gh",
+    "g_nuc_obs",
+    "g_th_obs",
+    "gn_obs",
+    "D_net"
+  ],
+  "panel_start": "2025-01-01T00:00:00",
+  "panel_end": "2025-12-31T23:00:00",
+  "cmo_rows": 34944
+}
