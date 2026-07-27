@@ -2510,6 +2510,12 @@ capacidade ao longo dos estágios. É o resultado central da seção, e vale lê
 mesmo ceticismo aplicado ao benchmark estático — convergência é consistência interna,
 não veracidade externa.
 
+A pergunta que a próxima figura precisa responder é dupla: o ponto fixo dinâmico de
+fato existe (a iteração converge nas tolerâncias) e, existindo, para onde ele leva a
+capacidade ao longo dos estágios. É o resultado central da seção, e vale lê-lo com o
+mesmo ceticismo aplicado ao benchmark estático — convergência é consistência interna,
+não veracidade externa.
+
 #imgfig(
   [Certificação do MFG dinâmico e trajetória de capacidade.],
   "outputs/figures/rel_dynamic_mfg_fixed_point.png",
